@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 #Currently only functionality is POST
-@api_view(['POST'])
+@api_view(['POST', "GET"])
 @permission_classes((permissions.AllowAny,))
 def mood_list(request, format=None):
     if request.method == 'POST': #When user attempts to POST will create a MoodSerializer object using the data input by the user
@@ -17,10 +17,10 @@ def mood_list(request, format=None):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED) #Then returns a response signifying that the data was added
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) #Otherwise returns a bad request
-    #elif request.method == 'GET':
-    #    moods = Moods.objects.all()
-    #    serializer = MoodSerializer(moods, many = True)
-    #    return Response(serializer.data)
+    elif request.method == 'GET':
+        moods = Moods.objects.all()
+        serializer = MoodSerializer(moods, many = True)
+        return Response(serializer.data)
 '''
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes((permissions.AllowAny,))

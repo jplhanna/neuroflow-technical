@@ -5,3 +5,4 @@ List of things I might have done differently:
 -Utilizing better front end to advane the back end.
     -Which would allow POST and GET to be seperate pages, or to load on the page individually
     -Or allow for a better user creation interface.
+-Likely used the REST framework in a more loose sense

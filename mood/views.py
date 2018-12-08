@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .models import *
 from .serializer import *
+from .moodhelper import *
 
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
@@ -18,13 +19,15 @@ def mood_list(request, format=None):
         if request.method == 'POST': #When user attempts to POST will create a MoodSerializer object using the data input by the user
             data = request.data
             data['user'] = request.user.username
+            data['streak'] = calcStreak(request.user)
             serializer = MoodSerializer(data = data)
             if serializer.is_valid(): #If the data is valid and creates a valid object, will save the data to the SQLite database using the moods Model
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED) #Then returns a response signifying that the data was added
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) #Otherwise returns a bad request
         elif request.method == 'GET': 
-            moods = Moods.objects.filter(user = request.user).order_by('date')
+            moods = Moods.objects.filter(user = request.user).order_by('-date')
+            print(moods)
             serializer = MoodSerializer(moods, many = True)
             return Response(serializer.data)
     else:

@@ -9,4 +9,4 @@ class MoodSerializer(serializers.ModelSerializer):
     #Set to handle models, specifcally the mood model created in /mood/models.py
     class Meta:
         model = Moods
-        fields = ('moodScore', 'user')#Since date initializes without user input it is not included as a field
+        fields = ('moodScore', 'user', 'streak')#Since date initializes without user input it is not included as a field

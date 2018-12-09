@@ -3,12 +3,12 @@ from .models import *
 from .serializer import *
 from .moodhelper import *
 from .filters import *
+from .permissions import *
 
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 
-from rest_framework import status, generics, viewsets
-from rest_framework import viewsets, permissions
+from rest_framework import status, generics, viewsets, permissions, filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -64,11 +64,12 @@ def mood_list(request, format=None):
 @permission_classes((permissions.AllowAny,))        
 class MoodList(generics.ListCreateAPIView):
     
-    queryset = Moods.objects.all()
+    queryset = Moods.objects.all().order_by('-date')
     serializer_class = MoodSerializer
-    filter_backends = DjangoFilterBackend
+    filter_backends = (DjangoFilterBackend, filters.DjangoObjectPermissionsFilter,)
     filter_fields = ('date',)
-    #filter_class = MoodFilter
+    filter_class = MoodFilter 
+    permission_classes = (MoodObjectPermissions, permissions.IsAuthenticatedOrReadOnly,)
     
     def post(self, request, format = None):
         if(request.user.username != ''):
@@ -116,13 +117,18 @@ class MoodList(generics.ListCreateAPIView):
             return redirect('/signin/')
 
 
-
-
-
-
-
-
-
+#@permission_classes((permissions.AllowAny,))
+class CorrelationList(generics.ListCreateAPIView):
+    queryset = Correlations.objects.all()
+    serializer_class = CorrelationSerializer
+    
+    def get(self, request, format = None):
+        calcCorrelations()
+        correlations = Correlations.objects.all()
+        correlationSerializer = CorrelationSerializer(correlations, many = True)
+        
+        return Response(correlationSerializer.data)
+        
 
 
 

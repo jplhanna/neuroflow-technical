@@ -17,4 +17,11 @@ class StreakSerializer(serializers.ModelSerializer):
     #Set to handle models, specifcally the Streak model created in /mood/models.py
     class Meta:
         model = Streaks
-        fields = ('currStreak', 'maxStreak', 'percentile', 'user')
+        fields = ('currStreak', 'currStart', 'maxStreak', 'maxStart', 'maxEnd', 'percentile', 'user')
+        
+class CorrelationSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(many = False, queryset = User.objects.all(), slug_field = 'username')
+    
+    class Meta:
+        model = Correlations
+        fields = ('avg', 'consistency', 'maxStreakAvg', 'maxStreak', 'user')

@@ -2,6 +2,7 @@ from .models import *
 from django.utils import timezone
 import datetime
 from django.db.models import Avg
+from django.contrib.auth.models import User
 
 
 def findBetween(user, start, end = timezone.now()):
@@ -30,6 +31,8 @@ def calcStreak(user):
             #If this new streak is greater than their max streak, updates that accordingly
             if(new_Streak > curr_Streak_Info.maxStreak):
                 curr_Streak_Info.maxStreak = new_Streak
+                curr_Streak_Info.maxStart = curr_Streak_Info.currStart
+                curr_Streak_Info.maxEnd = timezone.now()
                 
             
         #elif(timezone.now() - last_date < datetime.timedelta(days = 1)):
@@ -39,12 +42,14 @@ def calcStreak(user):
         elif(timezone.now() - last_date >= datetime.timedelta(days = 2)):
             #If so, resets current streak to 1
             curr_Streak_Info.currStreak = 1
+            curr_Streak_Info.currStart = timezone.now()
         #Otherwise the user POSTed on the same day, and the streak shouldn't change
     #If this this the first time a user has POSTed a mood
     else:
         #Sets current streak and max streak to 1
         curr_Streak_Info.currStreak = 1
         curr_Streak_Info.maxStreak = 1
+        curr_Streak_Info.currStart = timezone.now()
     curr_Streak_Info.save()
     
 #Calculates the percentile that the user's max streak places vs all users
@@ -67,6 +72,30 @@ def calcPercentile(user):
     
     
     
-def calcConsistency():
-    avg = Moods.objects.aggregate(Avg('moodScore'))
+def calcCorrelations():
+    for user in User.objects.all():
+        avg = Moods.objects.filter(user = user).aggregate(avg = Avg('moodScore')) #Double check filtering this way with Avg
+        #print(Moods.objects.filter(user=user))
+        #print("avg: ", avg)
+        streak = Streaks.objects.filter(user = user)[0]
+        startDelta = timezone.now() - user.date_joined
+        maxStreak = streak.maxStreak
+        consistency = datetime.timedelta(days = maxStreak) / startDelta * 100
+        maxStart = streak.maxStart
+        maxEnd = streak.maxEnd
+        
+        maxStreakAvg = Moods.objects.filter( user = user).aggregate(maxAvg = Avg('moodScore', date__lte = maxStart, date__gte = maxEnd))
+        #print(Moods.objects.filter( user = user,  date__gte = maxStart, date__lte = maxEnd))
+        #print("maxStreakAvg: ", maxStreakAvg)
+        correlation_temp = Correlations.objects.filter(user = user)
+        if(correlation_temp.exists()):
+            corr_update = correlation_temp[0]
+            corr_update.avg = avg['avg']
+            corr_update.consistency = consistency
+            corr_update.maxStreakAvg = maxStreakAvg['maxAvg']
+            corr_update.maxStreak = maxStreak
+            corr_update.save()
+        else:
+            new_correlation = Correlations(avg = avg['avg'], consistency = consistency, maxStreakAvg = maxStreakAvg['maxAvg'], maxStreak = maxStreak, user = user)
+            new_correlation.save()
     

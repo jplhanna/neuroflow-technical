@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'mood.apps.MoodConfig',
     'rest_framework',
     'django_filters',
+    'guardian'
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'guardian.backends.ObjectPermissionBackend')

@@ -18,5 +18,7 @@ correlation to calculate, I would utilize Pandas in order to create a histogram 
 
 Finally, I do believe Django, and Django's REST framework were well equiped to handle this task. Rather than changing
 the systems, I would like a well encompassing set of user cases. Which would better define models and functionality in
-advance. Allowing for a more effective use of the tech. The only requirement from there would be to find a proper system for
-a dedicated server. Though cloud9 is useful production, it does not make for a good dedicated server home.
+advance. Allowing for a more effective use of Django and it subsidiary libraries. And I don't believe I was able 
+to effectively use them due my experience, time constraints, and available plans.
+The only requirement from there would be to find a proper system for a dedicated server.
+Though cloud9 is useful production, it does not make for a good dedicated server home.

@@ -2,16 +2,21 @@ from django.shortcuts import render, redirect
 from .models import *
 from .serializer import *
 from .moodhelper import *
+from .filters import *
 
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 
-from rest_framework import status
+from rest_framework import status, generics, viewsets
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 #Currently functionality is POST and GET
+'''
 @api_view(['POST', "GET"])
 @permission_classes((permissions.AllowAny,))
 def mood_list(request, format=None):
@@ -55,24 +60,80 @@ def mood_list(request, format=None):
             return Response({'moods': moodSerializer.data, 'streak': streakData})
     else:
         return redirect('/signin/')
-'''
-@api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes((permissions.AllowAny,))
-def mood_detail(request, pk):
-    mood = Moods.objects.get(pk = pk)
+'''        
+@permission_classes((permissions.AllowAny,))        
+class MoodList(generics.ListCreateAPIView):
     
-    if request.method == 'GET':
-        serializer = MoodSerializer(mood)
-        return Response(serializer.data)
-    elif request.method == 'PUT':
-        serializer = MoodSerializer(mood, data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-    elif request.method == 'DELETE':
-        mood.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-'''
+    queryset = Moods.objects.all()
+    serializer_class = MoodSerializer
+    filter_backends = DjangoFilterBackend
+    filter_fields = ('date',)
+    #filter_class = MoodFilter
+    
+    def post(self, request, format = None):
+        if(request.user.username != ''):
+            data = request.data
+            #data['user'] = request.user.username #Adds username to collected data
+            
+            #Checks if this new POST will update the user's streaks
+            calcStreak(request.user)
+            
+            moodSerializer = MoodSerializer(data = data)
+            if moodSerializer.is_valid(): #If the data is valid and creates a valid object, will save the data to the SQLite database using the moods Model
+                moodSerializer.save()
+                
+                #Recalculates users percentile score in case it changes after their streak changes or other users have changed the score
+                check_bool = calcPercentile(request.user)
+                
+                #Collects current streak data now that it will no longer be edited. Pops data into streakData incase what is presented needs to be changed
+                curr_Streak_temp = Streaks.objects.filter(user = request.user)[0]
+                streakSerializer = StreakSerializer(curr_Streak_temp)
+                streakData = streakSerializer.data
+                if(check_bool): #If the percentile is below 50%, should remove percentile from the data that will be presented
+                    streakData.pop('percentile')
+                    
+                return Response({'moods': moodSerializer.data, 'streak': streakData }, status=status.HTTP_201_CREATED) #Then returns a response signifying that the data was added
+            return Response(moodSerializer.errors, status=status.HTTP_400_BAD_REQUEST) #Otherwise returns a bad request
+        else:
+            return redirect('/signin/')
+
+    def get(self, request, format = None):
+        if(request.user.username != ''):
+            
+            moods = Moods.objects.filter(user = request.user).order_by('-date')
+            moodSerializer = MoodSerializer(moods, many = True)
+            
+            #Rechecks if users percentile has changed in other users streaks have changed
+            check_bool = calcPercentile(request.user)
+            curr_Streak_temp = Streaks.objects.filter(user = request.user)[0]
+            streakSerializer = StreakSerializer(curr_Streak_temp)
+            streakData = streakSerializer.data
+            if(check_bool): #If the percentile is below 50%, should remove percentile from the data that will be presented
+                streakData.pop('percentile')
+            
+            return Response({'moods': moodSerializer.data, 'streak': streakData})
+        else:
+            return redirect('/signin/')
+
+
+
+
+
+
+
+
+
+
+
+
+
+#@api_view(['GET'])
+#@permission_classes((permissions.AllowAny,))
+#def mood_streak_correlation_list(request):
+#    if(request.method == "GET"):
+            
+    
+
 
 @api_view(['POST','GET'])
 @permission_classes((permissions.AllowAny,))

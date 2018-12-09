@@ -1,0 +1,22 @@
+If this were a production application the biggest thing I would have done differently
+is creating and utilizing a proper front end. Searching for someone more experienced,
+who could participate in the project. There are a number of funtionalities that would have
+been easier to create with a front end for users to input more information than what
+is available in a basic GET or POST. Using Bootstrap for the front end and javascript
+for connecting information between the front end and back end.
+
+I believe if we needed to handle more users or data it would be necessary to relook at when streak percentile is calculated,
+as well as what is presented for users in mood_streak_correlation. These are both systems with basic algorithms 
+for a small assessment. Percentile might currently be calculating too often, being called whenever a user
+POST's or GET's. Depending on the size of data or users, it can be more efficient to recalculate everyones
+percentile only after a user POST's a new max streak. As for mood_streak_correlation, not only would I like to
+revisit what exactly is being calculated and what would be the most effective correlation to present users,
+but I would like to change the current system which shows every users' correlations.
+The latter could lead to possible leaks, as well as simply presenting too much raw information to users.
+This gets worse the more users and data we would have to handle. Ideally, with a better understanding of what
+correlation to calculate, I would utilize Pandas in order to create a histogram to present to users.
+
+Finally, I do believe Django, and Django's REST framework were well equiped to handle this task. Rather than changing
+the systems, I would like a well encompassing set of user cases. Which would better define models and functionality in
+advance. Allowing for a more effective use of the tech. The only requirement from there would be to find a proper system for
+a dedicated server. Though cloud9 is useful production, it does not make for a good dedicated server home.

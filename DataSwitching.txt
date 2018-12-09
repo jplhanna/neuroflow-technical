@@ -1,0 +1,32 @@
+The implications of switching the type of data used for mood values depends on
+whether we are going from a number data type to another number
+or a text data type to another text data type(i.e., integer to float, or charfield to textfield),
+or if we are going from a text data type to a number data type or vice versa.
+The latter will require more work in order fix functionality.
+
+Either way, we would need to change the moodScore field type in models.py, and there are a few options.
+Due to the generics of the mood enpoint moodList class, it is possible to 
+create a new mood model and input that as the model for the view class to utilize.
+The view class would be able to handle the changes.
+This option can be used if we no longer care about the old data, and whether it is used or presented.
+Another option, if we do care about the old data, is to utilize django's South library/system.
+This system adds an advanced migration command allowing users to reverse and replace database migrations.
+This change even keeps the old data within the migration.
+Also, since the user streaks are saved seperately and can not be affected by changing the moods data type,
+no matter what, streaks should be integers, and its percentiles' be floats.
+
+When moving between same types we don't have to worry heavily about how this might affect how the correlations
+are calculated. Even if the mood_streak_correlation endpoint is where the mood data is utilized the most.
+The calculations are likely to either use the same math, or utilize the same strings regardless of data changes.
+Being used in a very simple sense when collected or presented, especially in the backend.
+It is more likely, that the front end or what is presented to the front end will need to be changed.
+Such as changing from an open input to a drop down or modal options.
+
+
+If we are moving between 2 contradicting types, the biggest implication is how we present and calculate the
+mood_streak_correlation. We would have to go from calculating average mood scores to presenting most common
+string responces or vice versa. Thus, requiring a drastic change in the related classes and fucntions in
+models.py, serializer.py, and moodhelper.py.
+It would become necessary to change the mood score related fields within the MoodStreakCorrelations model,
+and serializer. As well as, changing the helper fucntions that calculate the mood score parts of the correlations.
+This will likely require that entire endpoint be thorougly retested.

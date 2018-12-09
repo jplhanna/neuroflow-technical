@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 #__str__ is used for easy database access in admin mode
 
@@ -20,8 +21,16 @@ class Moods(models.Model):
 class Streaks(models.Model):
     #Int value for user's current streak, defaults to 0
     currStreak = models.IntegerField(default = 0)
+    
+    #currStart = models.DateTimeField(default = timezone.now())
+    
     #Int value for user's lifetime max streak, defaults to 0
     maxStreak = models.IntegerField(default = 0)
+    
+    #maxStart = models.DateTimeField(default = timezone.now())
+    
+    #maxEnd = models.DateTimeField(defualt = timezone.now())
+    
     #Float value of percentile placement of user's max streak vs all users
     percentile = models.FloatField(default = 0.0)
     #User foreignkey to connect users to their mood scores

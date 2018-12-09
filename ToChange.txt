@@ -1,10 +1,10 @@
 List of things I might have done differently:
--Find a way to make mood data generic
 -Would have hopefully had more time to become acquainted with the REST framework,
     as well as have checked with peers or other members of the team who might know the system better
 -Utilizing better front end to advane the back end.
     -Which would allow POST and GET to be seperate pages, or to load on the page individually
     -Or allow for a better user creation interface.
 -Likely used the REST framework in a more loose sense
--Further planned how streak and max streak would be tracked for consistency
-    -Have a seperate model just for streaks
+-Further planned the models and the items in the models
+    -Allowing for streaks to be tracked better
+-Better prepare for generics

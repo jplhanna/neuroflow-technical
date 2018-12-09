@@ -1,6 +1,16 @@
 from .models import *
 from django.utils import timezone
 import datetime
+from django.db.models import Avg
+
+
+def findBetween(user, start, end = timezone.now()):
+    return Moods.objects.filter(user = user, date__gte = start, date__lte = end)
+
+
+
+
+
 
 #Checks if a user needs to update streak data, then updates it
 def calcStreak(user):
@@ -54,3 +64,9 @@ def calcPercentile(user):
     
     #Returns whether the value is less than 50% or not
     return percentile < 50
+    
+    
+    
+def calcConsistency():
+    avg = Moods.objects.aggregate(Avg('moodScore'))
+    

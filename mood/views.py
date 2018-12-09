@@ -11,25 +11,48 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-#Currently only functionality is POST
+#Currently functionality is POST and GET
 @api_view(['POST', "GET"])
 @permission_classes((permissions.AllowAny,))
 def mood_list(request, format=None):
     if(request.user.username != ''):
         if request.method == 'POST': #When user attempts to POST will create a MoodSerializer object using the data input by the user
             data = request.data
-            data['user'] = request.user.username
-            data['streak'] = calcStreak(request.user)
-            serializer = MoodSerializer(data = data)
-            if serializer.is_valid(): #If the data is valid and creates a valid object, will save the data to the SQLite database using the moods Model
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED) #Then returns a response signifying that the data was added
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) #Otherwise returns a bad request
-        elif request.method == 'GET': 
+            data['user'] = request.user.username #Adds username to collected data
+            
+            #Checks if this new POST will update the user's streaks
+            calcStreak(request.user)
+            
+            moodSerializer = MoodSerializer(data = data)
+            if moodSerializer.is_valid(): #If the data is valid and creates a valid object, will save the data to the SQLite database using the moods Model
+                moodSerializer.save()
+                
+                #Recalculates users percentile score in case it changes after their streak changes or other users have changed the score
+                check_bool = calcPercentile(request.user)
+                
+                #Collects current streak data now that it will no longer be edited. Pops data into streakData incase what is presented needs to be changed
+                curr_Streak_temp = Streaks.objects.filter(user = request.user)[0]
+                streakSerializer = StreakSerializer(curr_Streak_temp)
+                streakData = streakSerializer.data
+                if(check_bool): #If the percentile is below 50%, should remove percentile from the data that will be presented
+                    streakData.pop('percentile')
+                    
+                return Response({'moods': moodSerializer.data, 'streak': streakData }, status=status.HTTP_201_CREATED) #Then returns a response signifying that the data was added
+            return Response(moodSerializer.errors, status=status.HTTP_400_BAD_REQUEST) #Otherwise returns a bad request
+        
+        elif request.method == 'GET': #Whenever a user visits /mood/ or calls for a GET will filter for moods based on user ordered by date
             moods = Moods.objects.filter(user = request.user).order_by('-date')
-            print(moods)
-            serializer = MoodSerializer(moods, many = True)
-            return Response(serializer.data)
+            moodSerializer = MoodSerializer(moods, many = True)
+            
+            #Rechecks if users percentile has changed in other users streaks have changed
+            check_bool = calcPercentile(request.user)
+            curr_Streak_temp = Streaks.objects.filter(user = request.user)[0]
+            streakSerializer = StreakSerializer(curr_Streak_temp)
+            streakData = streakSerializer.data
+            if(check_bool): #If the percentile is below 50%, should remove percentile from the data that will be presented
+                streakData.pop('percentile')
+            
+            return Response({'moods': moodSerializer.data, 'streak': streakData})
     else:
         return redirect('/signin/')
 '''
@@ -64,12 +87,19 @@ def signUp(request):
             if(User.objects.filter(email = email_tmp).exists()): #First checks that there are no other emails with the same name
                 return Response(status = status.HTTP_400_BAD_REQUEST)
             if(password_tmp == confirm_tmp): #checks that the password and it's confirmation match up
+                #If succesful will create and save user account
                 new_user = User.objects.create_user(user_tmp, email_tmp, password_tmp)
                 new_user.save()
-                #If succesful will create and save user account, then log them in and redirect them to the mood endpoint
+                
+                #Create their connected streak model and save it
+                new_streak = Streaks(user = new_user)
+                new_streak.save()
+                
+                #Then it logs the user in and redirects them to the mood endpoing
                 auth_login = authenticate(username = user_tmp, password = password_tmp)
                 login(request, auth_login)
                 return redirect('/mood/')
+                
             else:#Otherwise return a bad request
                 return Response(status = status.HTTP_400_BAD_REQUEST)
         if request.method == "GET": #the signup endpoint gets basic information for signing up

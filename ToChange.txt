@@ -6,3 +6,5 @@ List of things I might have done differently:
     -Which would allow POST and GET to be seperate pages, or to load on the page individually
     -Or allow for a better user creation interface.
 -Likely used the REST framework in a more loose sense
+-Further planned how streak and max streak would be tracked for consistency
+    -Have a seperate model just for streaks

@@ -80,7 +80,8 @@ class MoodList(generics.ListCreateAPIView):
             calcStreak(request.user)
             
             moodSerializer = MoodSerializer(data = data)
-            if moodSerializer.is_valid(): #If the data is valid and creates a valid object, will save the data to the SQLite database using the moods Model
+            if moodSerializer.is_valid() and data['user'] == request.user.username:
+                #If the data is valid and creates a valid object, and is under the right username, will save the data to the SQLite database using the moods Model
                 moodSerializer.save()
                 
                 #Recalculates users percentile score in case it changes after their streak changes or other users have changed the score
@@ -100,7 +101,6 @@ class MoodList(generics.ListCreateAPIView):
 
     def get(self, request, format = None):
         if(request.user.username != ''):
-            
             moods = Moods.objects.filter(user = request.user).order_by('-date')
             moodSerializer = MoodSerializer(moods, many = True)
             
@@ -115,6 +115,88 @@ class MoodList(generics.ListCreateAPIView):
             return Response({'moods': moodSerializer.data, 'streak': streakData})
         else:
             return redirect('/signin/')
+            
+class MoodDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Moods.objects.all().order_by('-date')
+    serializer_class = MoodSerializer
+    
+    def get(self, request, *args, **kwargs):
+        #print(kwargs)
+        if(request.user.username != ""):
+            option = kwargs.get('point')
+            if(option==None):
+                yearS = kwargs['yearS']
+                monthS = kwargs['monthS']
+                dayS = kwargs['dayS']
+            
+                if(monthS > 12 or dayS > 31):
+                    return redirect('/mood/')
+            
+                try:
+                    datetimeStart = datetime.datetime(yearS, monthS, dayS)
+                except:
+                    return(redirect('/mood/'))
+                
+                yearE = kwargs['yearE']
+                monthE = kwargs['monthE']
+                dayE = kwargs['dayE']
+                
+                if(monthE > 12 or dayE > 31):
+                    return redirect('/mood/')
+                
+                try:
+                    datetimeEnd = datetime.datetime(yearE, monthE, dayE)
+                except:
+                    return(redirect('/mood/'))
+                
+                moods = self.queryset.filter(user = request.user, date__gte = datetimeStart, date__lte = datetimeEnd)
+                moodSerializer = MoodSerializer(moods, many = True)
+                
+                #Rechecks if users percentile has changed in other users streaks have changed
+                check_bool = calcPercentile(request.user)
+                curr_Streak_temp = Streaks.objects.filter(user = request.user)[0]
+                streakSerializer = StreakSerializer(curr_Streak_temp)
+                streakData = streakSerializer.data
+                if(check_bool): #If the percentile is below 50%, should remove percentile from the data that will be presented
+                    streakData.pop('percentile')
+                
+                return Response({'moods': moodSerializer.data, 'streak': streakData})
+                
+            elif(option == 'start' or option == 'end'):
+                year = kwargs['year']
+                month = kwargs['month']
+                day = kwargs['day']
+                
+                #if(month > 12 or day > 31):
+                #    return redirect('/mood/')
+                try:
+                    datetimePoint = datetime.datetime(year, month, day)
+                except:
+                    return redirect('/mood/')
+                
+                moods = self.queryset    
+            
+                if(option == 'start'):
+                    moods = moods.filter(user = request.user, date__gte = datetimePoint)
+                else:
+                    moods = moods.filter(user = request.user, date__lte = datetimePoint)
+                
+                moodSerializer = MoodSerializer(moods, many = True)
+                
+                #Rechecks if users percentile has changed in other users streaks have changed
+                check_bool = calcPercentile(request.user)
+                curr_Streak_temp = Streaks.objects.filter(user = request.user)[0]
+                streakSerializer = StreakSerializer(curr_Streak_temp)
+                streakData = streakSerializer.data
+                if(check_bool): #If the percentile is below 50%, should remove percentile from the data that will be presented
+                    streakData.pop('percentile')
+                
+                return Response({'moods': moodSerializer.data, 'streak': streakData})
+                
+            else:
+                return redirect('/mood/')
+        else:
+            return redirect('signin/')
 
 
 #@permission_classes((permissions.AllowAny,))

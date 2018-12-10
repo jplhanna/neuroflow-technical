@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from .models import *
 
-#Serializer for Django/Python's REST framework
+#Serializers for Django/Python's REST framework
 class MoodSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many = False, queryset = User.objects.all(), slug_field = 'username')
     
@@ -22,6 +22,7 @@ class StreakSerializer(serializers.ModelSerializer):
 class CorrelationSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many = False, queryset = User.objects.all(), slug_field = 'username')
     
+    #Set to handle models, specifcally the Correlation model created in /mood/models.py
     class Meta:
         model = Correlations
         fields = ('avg', 'consistency', 'maxStreakAvg', 'maxStreak', 'user')

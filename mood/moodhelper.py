@@ -73,29 +73,37 @@ def calcPercentile(user):
     
     
 def calcCorrelations():
-    for user in User.objects.all():
-        avg = Moods.objects.filter(user = user).aggregate(avg = Avg('moodScore')) #Double check filtering this way with Avg
+    for user in User.objects.all(): #Loops through every user
+        #Calculates the users avg moodScore
+        avg = Moods.objects.filter(user = user).aggregate(avg = Avg('moodScore'))
         #print(Moods.objects.filter(user=user))
         #print("avg: ", avg)
         streak = Streaks.objects.filter(user = user)[0]
+        
+        #Calculates how many days it's been since the user has created their account
         startDelta = timezone.now() - user.date_joined
         maxStreak = streak.maxStreak
+        #Calculates the ratio between that start date and the users longest streak
         consistency = datetime.timedelta(days = maxStreak) / startDelta * 100
+        
         maxStart = streak.maxStart
         maxEnd = streak.maxEnd
         
+        #Finds the avg mood during the users longest streak
         maxStreakAvg = Moods.objects.filter( user = user).aggregate(maxAvg = Avg('moodScore', date__lte = maxStart, date__gte = maxEnd))
         #print(Moods.objects.filter( user = user,  date__gte = maxStart, date__lte = maxEnd))
         #print("maxStreakAvg: ", maxStreakAvg)
+        
+        #Checks if the users correlation data has been calculated before
         correlation_temp = Correlations.objects.filter(user = user)
-        if(correlation_temp.exists()):
+        if(correlation_temp.exists()): #Updates their correlation model with the calculated data if so
             corr_update = correlation_temp[0]
             corr_update.avg = avg['avg']
             corr_update.consistency = consistency
             corr_update.maxStreakAvg = maxStreakAvg['maxAvg']
             corr_update.maxStreak = maxStreak
             corr_update.save()
-        else:
+        else: #Or creates a new correlation model with calculated data for the user.
             new_correlation = Correlations(avg = avg['avg'], consistency = consistency, maxStreakAvg = maxStreakAvg['maxAvg'], maxStreak = maxStreak, user = user)
             new_correlation.save()
     

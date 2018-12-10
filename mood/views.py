@@ -115,40 +115,40 @@ class MoodList(generics.ListCreateAPIView):
             return Response({'moods': moodSerializer.data, 'streak': streakData})
         else:
             return redirect('/signin/')
-            
+    
+#A secondary mood view class utilizaed for detailed calls to GET        
 class MoodDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Moods.objects.all().order_by('-date')
     serializer_class = MoodSerializer
     
+    #Therefore it only has the GET method
     def get(self, request, *args, **kwargs):
         #print(kwargs)
+        #Checks that a user is logged in
         if(request.user.username != ""):
             option = kwargs.get('point')
-            if(option==None):
+            if(option==None): #If no word was input before the date it is assumed the user has given 2 dates. That is the only way this should be called then.
                 yearS = kwargs['yearS']
                 monthS = kwargs['monthS']
                 dayS = kwargs['dayS']
             
-                if(monthS > 12 or dayS > 31):
-                    return redirect('/mood/')
-            
+                #Attempts to create a datetime with the given integers
                 try:
                     datetimeStart = datetime.datetime(yearS, monthS, dayS)
-                except:
+                except: #Will redirect to the main mood endpoint if this fails
                     return(redirect('/mood/'))
                 
                 yearE = kwargs['yearE']
                 monthE = kwargs['monthE']
                 dayE = kwargs['dayE']
                 
-                if(monthE > 12 or dayE > 31):
-                    return redirect('/mood/')
                 
                 try:
                     datetimeEnd = datetime.datetime(yearE, monthE, dayE)
                 except:
                     return(redirect('/mood/'))
                 
+                #Filters between the first and second given date
                 moods = self.queryset.filter(user = request.user, date__gte = datetimeStart, date__lte = datetimeEnd)
                 moodSerializer = MoodSerializer(moods, many = True)
                 
@@ -162,13 +162,11 @@ class MoodDetail(generics.RetrieveUpdateDestroyAPIView):
                 
                 return Response({'moods': moodSerializer.data, 'streak': streakData})
                 
-            elif(option == 'start' or option == 'end'):
+            elif(option == 'start' or option == 'end'): #Checks that a user input start or end
                 year = kwargs['year']
                 month = kwargs['month']
                 day = kwargs['day']
                 
-                #if(month > 12 or day > 31):
-                #    return redirect('/mood/')
                 try:
                     datetimePoint = datetime.datetime(year, month, day)
                 except:
@@ -176,7 +174,7 @@ class MoodDetail(generics.RetrieveUpdateDestroyAPIView):
                 
                 moods = self.queryset    
             
-                if(option == 'start'):
+                if(option == 'start'): #Filters based on whether user input start or end
                     moods = moods.filter(user = request.user, date__gte = datetimePoint)
                 else:
                     moods = moods.filter(user = request.user, date__lte = datetimePoint)
@@ -193,9 +191,9 @@ class MoodDetail(generics.RetrieveUpdateDestroyAPIView):
                 
                 return Response({'moods': moodSerializer.data, 'streak': streakData})
                 
-            else:
+            else: #If something other than start or end was input after mood redirects back to mood
                 return redirect('/mood/')
-        else:
+        else: #Redirects to signin if not logged in
             return redirect('signin/')
 
 
@@ -211,16 +209,6 @@ class CorrelationList(generics.ListCreateAPIView):
         
         return Response(correlationSerializer.data)
         
-
-
-
-
-#@api_view(['GET'])
-#@permission_classes((permissions.AllowAny,))
-#def mood_streak_correlation_list(request):
-#    if(request.method == "GET"):
-            
-    
 
 
 @api_view(['POST','GET'])

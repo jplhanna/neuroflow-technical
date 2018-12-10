@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from .models import *
 from .serializer import *
 from .moodhelper import *
-from .filters import *
 from .permissions import *
 
 from django.contrib.auth.models import User
@@ -13,7 +12,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from django_filters.rest_framework import DjangoFilterBackend
 
 #Currently functionality is POST and GET
 '''
@@ -66,9 +64,8 @@ class MoodList(generics.ListCreateAPIView):
 
     queryset = Moods.objects.all().order_by('-date')
     serializer_class = MoodSerializer
-    filter_backends = (DjangoFilterBackend, filters.DjangoObjectPermissionsFilter,)
+    filter_backends = (filters.DjangoObjectPermissionsFilter,)
     filter_fields = ('date',)
-    filter_class = MoodFilter
     permission_classes = (MoodObjectPermissions, permissions.IsAuthenticatedOrReadOnly,)
 
     def post(self, request, format = None):

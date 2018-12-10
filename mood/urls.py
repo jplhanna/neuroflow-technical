@@ -2,12 +2,10 @@ from django.urls import path
 from .views import *
 from .filters import *
 from rest_framework.urlpatterns import format_suffix_patterns
-from django_filters.views import FilterView
 
 
 urlpatterns = [
     path('mood/', MoodList.as_view()),
-    #path('mood/', FilterView.as_view(filterset_class = MoodFilter)),
     path('mood/<str:point>/<int:year>/<int:month>/<int:day>/', MoodDetail.as_view()),
     path('mood/<int:yearS>/<int:monthS>/<int:dayS>/<int:yearE>/<int:monthE>/<int:dayE>/', MoodDetail.as_view()),
     path('signup/', signUp),

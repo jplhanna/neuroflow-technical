@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '6s^t+a$2-&(1yp)qk4x5w+175jgy5uw-d6i+y8w%rn=_0ahh$e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['neuroflow-technical-jplhanna.c9users.io',]
+ALLOWED_HOSTS = ['neuroflow-technical-jplhanna.c9users.io','0.0.0.0']
 
 
 # Application definition
@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mood.apps.MoodConfig',
     'rest_framework',
-    'django_filters',
     'guardian'
 ]
 

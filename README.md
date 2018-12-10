@@ -1,11 +1,15 @@
 # neuroflow-technical
 A technical REST project for Collecting, tracking, and presenting users Mood, and the data related to it.
 After installing the necessary libraries, the server can be run with `python manage.py runserver (Server IP):(Server Port)`
-If this is in django use `$IP:$PORT`
+If this is in cloud9 use `$IP:$PORT`
 
-For testing and debugging purposes go to setting.py and change DEBUG to equal True.
+For testing and debugging purposes go to mood/setting.py and change DEBUG to equal True
 
-In order to install and run this application it is also necessary for you to install these libraries, with the following commands:
+As well as add the webpage or Server IP you would like to use for this app in ALLOWED_HOSTS.
+
+In order to run this application it is either also necessary for you to use Docker and docker-compose in order create a runnable image
+
+or  you must manually install these libraries, with the following commands:
 
 `virtualenv env`
 
@@ -15,9 +19,8 @@ django              :       `sudo pip install django`
 
 django_rest_framework:      `sudo pip install djangorestframework`
 
-django-filters      :       `sudo pip install django-filters`
-
 django-guardian     :       `sudo pip install django-guardian`
+
 
 The website includes the endpoints:
 `mood`

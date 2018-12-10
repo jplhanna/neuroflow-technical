@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '6s^t+a$2-&(1yp)qk4x5w+175jgy5uw-d6i+y8w%rn=_0ahh$e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['neuroflow-technical-jplhanna.c9users.io',]
 

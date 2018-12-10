@@ -18,7 +18,7 @@ def calcStreak(user):
     #Collects users mood data, and streak model
     moods = Moods.objects.filter(user = user).order_by('-date')
     curr_Streak_Info = Streaks.objects.filter(user = user)[0]
-    
+
     #If the user has POSTed a mood before:
     if moods.exists():
         #Checks if the last time the user POSTed a mood is within 24 and 48 hours
@@ -27,17 +27,17 @@ def calcStreak(user):
             #If so, increments the users current streak by 1
             new_Streak = curr_Streak_Info.currStreak + 1
             curr_Streak_Info.currStreak = new_Streak
-            
+
             #If this new streak is greater than their max streak, updates that accordingly
             if(new_Streak > curr_Streak_Info.maxStreak):
                 curr_Streak_Info.maxStreak = new_Streak
                 curr_Streak_Info.maxStart = curr_Streak_Info.currStart
                 curr_Streak_Info.maxEnd = timezone.now()
-                
-            
+
+
         #elif(timezone.now() - last_date < datetime.timedelta(days = 1)):
         #    return moods[0].streak
-        
+
         #Checks if the last time a user POSTed a mood is greater than 48 hours
         elif(timezone.now() - last_date >= datetime.timedelta(days = 2)):
             #If so, resets current streak to 1
@@ -51,7 +51,7 @@ def calcStreak(user):
         curr_Streak_Info.maxStreak = 1
         curr_Streak_Info.currStart = timezone.now()
     curr_Streak_Info.save()
-    
+
 #Calculates the percentile that the user's max streak places vs all users
 def calcPercentile(user):
     #Collects the users max streak
@@ -61,17 +61,17 @@ def calcPercentile(user):
     all_streaks = Streaks.objects.all().count()
     #And the number of users with a max streak less than the current user
     streaks_LT = Streaks.objects.filter(maxStreak__lte = personal_max).count()
-    
+
     #Calculates the percentile, and updates the users streak value
     percentile = streaks_LT / all_streaks * 100
     curr_Streak_Info.percentile = percentile
     curr_Streak_Info.save()
-    
+
     #Returns whether the value is less than 50% or not
     return percentile < 50
-    
-    
-    
+
+
+
 def calcCorrelations():
     for user in User.objects.all(): #Loops through every user
         #Calculates the users avg moodScore
@@ -79,21 +79,21 @@ def calcCorrelations():
         #print(Moods.objects.filter(user=user))
         #print("avg: ", avg)
         streak = Streaks.objects.filter(user = user)[0]
-        
+
         #Calculates how many days it's been since the user has created their account
         startDelta = timezone.now() - user.date_joined
         maxStreak = streak.maxStreak
         #Calculates the ratio between that start date and the users longest streak
         consistency = datetime.timedelta(days = maxStreak) / startDelta * 100
-        
+
         maxStart = streak.maxStart
         maxEnd = streak.maxEnd
-        
+
         #Finds the avg mood during the users longest streak
         maxStreakAvg = Moods.objects.filter( user = user).aggregate(maxAvg = Avg('moodScore', date__lte = maxStart, date__gte = maxEnd))
         #print(Moods.objects.filter( user = user,  date__gte = maxStart, date__lte = maxEnd))
         #print("maxStreakAvg: ", maxStreakAvg)
-        
+
         #Checks if the users correlation data has been calculated before
         correlation_temp = Correlations.objects.filter(user = user)
         if(correlation_temp.exists()): #Updates their correlation model with the calculated data if so
@@ -106,4 +106,3 @@ def calcCorrelations():
         else: #Or creates a new correlation model with calculated data for the user.
             new_correlation = Correlations(avg = avg['avg'], consistency = consistency, maxStreakAvg = maxStreakAvg['maxAvg'], maxStreak = maxStreak, user = user)
             new_correlation.save()
-    

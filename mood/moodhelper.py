@@ -23,7 +23,7 @@ def calcStreak(user):
     if moods.exists():
         #Checks if the last time the user POSTed a mood is within 24 and 48 hours
         last_date = moods[0].date
-        if(datetime.timedelta(days = 2) < timezone.now() - last_date >= datetime.timedelta(days = 1)):
+        if(datetime.timedelta(days = 2) > timezone.now() - last_date >= datetime.timedelta(days = 1)):
             #If so, increments the users current streak by 1
             new_Streak = curr_Streak_Info.currStreak + 1
             curr_Streak_Info.currStreak = new_Streak
@@ -73,7 +73,8 @@ def calcPercentile(user):
 
 
 def calcCorrelations():
-    for user in User.objects.all(): #Loops through every user
+    #for user in User.objects.all(): #Loops through every use
+    for user in User.objects.filter(user != "anonymous"): #Need to double check if this logic works
         #Calculates the users avg moodScore
         avg = Moods.objects.filter(user = user).aggregate(avg = Avg('moodScore'))
         #print(Moods.objects.filter(user=user))
